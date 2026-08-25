@@ -15,8 +15,9 @@ const emptyHud: HudState = {
 };
 
 const hudScale: CSSProperties = {
-  // Fluid but much smaller floor for phones: was clamp(22.5px, ...) which never shrank below 22.5px and overlapped the page.
-  fontSize: 'clamp(11px, 0.95vw + 7.5px, 30px)',
+  // Desktop keeps original scale exactly: clamp(22.5px, 2.025vw + 13.5px, 40.5px)
+  // Mobile shrinks via CSS media override on .hud-root (see index.css) so large screens stay identical.
+  fontSize: 'clamp(22.5px, 2.025vw + 13.5px, 40.5px)',
 };
 
 const btnCls =
@@ -46,7 +47,7 @@ export default function Hud({ onRestart }: HudProps) {
   return (
     <>
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-wrap items-start justify-between gap-x-[0.6em] gap-y-[0.45em] p-[0.5em] sm:p-[0.8em]"
+        className="hud-root pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-wrap items-start justify-between gap-x-[0.6em] gap-y-[0.45em] p-[0.5em] sm:p-[0.8em]"
         style={hudScale}
       >
         <div className="flex min-w-0 flex-1 flex-col items-start gap-[0.38em] sm:gap-[0.5em]" style={{ fontSize: '0.8em' }}>
@@ -61,7 +62,7 @@ export default function Hud({ onRestart }: HudProps) {
 
           <div
             className="flex max-w-full flex-wrap border border-[var(--dark)] bg-[var(--carbon)]/85"
-            style={{ fontSize: 'clamp(11px, 1.18em, 1.5em)' }}
+            style={{ fontSize: '1.5em' }}
           >
             <Cell label="SCORE">
               <span className="text-[0.68em] leading-none text-[var(--amber)] sm:text-[0.74em]">
@@ -103,7 +104,7 @@ export default function Hud({ onRestart }: HudProps) {
       {/* Bottom hints: row on desktop, stacked centered on phones to avoid overlapping the page */}
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden justify-between gap-x-3 px-3 pb-[10px] text-[var(--clay)] sm:flex sm:px-4"
-        style={{ fontSize: 'clamp(9px, 0.6vw + 5px, 12px)' }}
+        style={{ fontSize: 'clamp(10px, 0.75vw + 5px, 15px)' }}
       >
         <span className="truncate">{'AIM with POINTER · HOLD to CHARGE · RELEASE to FLICK'}</span>
         <span className="shrink-0">{'LAND ON an IMAGE to SCORE'}</span>

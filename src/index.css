@@ -76,3 +76,15 @@ body,
 .blink-block {
   animation: blink-block 1s steps(1) infinite;
 }
+
+/* HUD: keep desktop exactly as before (22.5px–40.5px) but shrink proportionally on small screens to prevent overlap with the page */
+@media (max-width: 640px) {
+  .hud-root {
+    font-size: clamp(11px, 3.6vw + 4px, 18.5px) !important;
+  }
+}
+@media (max-width: 380px) {
+  .hud-root {
+    font-size: clamp(10px, 3.8vw + 2px, 16px) !important;
+  }
+}
