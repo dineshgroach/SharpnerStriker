@@ -15,20 +15,18 @@ const emptyHud: HudState = {
 };
 
 const hudScale: CSSProperties = {
-  // General responsive: scales with both width and height (vmin/vw/vh) so it tracks the page zoom
-  // (page zoom = min(vw/WORLD_W, vh/WORLD_H)). Previous vw-only clamp stayed 40.5px on 1800x1320 and 1366x768
-  // while page shrank, causing FLICKS to overlap. This fluid formula keeps HUD proportional on any viewport
-  // (27" 2560x1440 -> ~36px, 1800x1320 -> ~33px, 14" 1366x768 -> ~23px, phones -> ~12px).
-  fontSize: 'clamp(11px, 1.15vmin + 0.55vw + 0.35vh + 4px, 36px)',
+  // General responsive: scales with vmin so it tracks page zoom (zoom = min(vw,vh)).
+  // Keeps original 40.5px max on 27" but shrinks on 1800x1320, 14" and phones to prevent FLICKS overlap.
+  fontSize: 'clamp(11px, 1.15vmin + 0.55vw + 0.35vh + 4px, 40.5px)',
 };
 
 const btnCls =
-  'pointer-events-auto whitespace-nowrap border border-[var(--dark)] bg-[var(--carbon)]/85 px-[0.5em] py-[0.34em] leading-none text-[0.48em] tracking-[0.11em] text-[var(--cement)] transition-colors hover:border-[var(--amber)] hover:bg-[var(--amber)] hover:text-[var(--black)] active:translate-y-px sm:px-[0.55em] sm:py-[0.4em] sm:text-[0.52em]';
+  'pointer-events-auto border border-[var(--dark)] bg-[var(--carbon)]/85 px-[0.55em] py-[0.4em] leading-none text-[0.52em] tracking-[0.12em] text-[var(--cement)] transition-colors hover:border-[var(--amber)] hover:bg-[var(--amber)] hover:text-[var(--black)] active:translate-y-px';
 
 function Cell({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-col gap-[0.18em] border-l border-[var(--dark)] px-[0.46em] py-[0.36em] first:border-l-0 sm:gap-[0.22em] sm:px-[0.62em] sm:py-[0.44em]">
-      <span className="text-[0.42em] tracking-[0.18em] text-[var(--ash)] sm:text-[0.46em] sm:tracking-[0.22em]">{label}</span>
+    <div className="flex flex-col gap-[0.22em] border-l border-[var(--dark)] px-[0.62em] py-[0.44em] first:border-l-0">
+      <span className="text-[0.46em] tracking-[0.22em] text-[var(--ash)]">{label}</span>
       {children}
     </div>
   );
@@ -49,39 +47,36 @@ export default function Hud({ onRestart }: HudProps) {
   return (
     <>
       <div
-        className="hud-root pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-wrap items-start justify-between gap-x-[0.6em] gap-y-[0.45em] p-[0.5em] sm:p-[0.8em]"
+        className="hud-root pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-wrap items-start justify-between gap-x-[0.6em] gap-y-[0.45em] p-[0.8em]"
         style={hudScale}
       >
-        <div className="flex min-w-0 flex-1 flex-col items-start gap-[0.38em] sm:gap-[0.5em]" style={{ fontSize: '0.8em' }}>
-          <div className="flex max-w-full flex-wrap items-start gap-y-1">
-            <span className="bg-[var(--aluminum)] px-[0.34em] py-[0.22em] text-[0.9em] leading-none text-[var(--soot)] sm:text-[1.02em]">
+        <div className="flex flex-col items-start gap-[0.5em]" style={{ fontSize: '0.8em' }}>
+          <div className="flex items-start">
+            <span className="bg-[var(--aluminum)] px-[0.34em] py-[0.22em] text-[1.02em] leading-none text-[var(--soot)]">
               SHARPENER FLICK
             </span>
-            <sup className="ml-[0.24em] mt-[0.1em] text-[0.42em] text-[var(--ash)] sm:text-[0.44em]">
+            <sup className="ml-[0.24em] mt-[0.1em] text-[0.44em] text-[var(--ash)]">
               v1.0
             </sup>
           </div>
 
-          <div
-            className="score-box flex max-w-full flex-wrap border border-[var(--dark)] bg-[var(--carbon)]/85"
-            style={{ fontSize: '1.5em' }}
-          >
+          <div className="flex border border-[var(--dark)] bg-[var(--carbon)]/85" style={{ fontSize: '1.5em' }}>
             <Cell label="SCORE">
-              <span className="text-[0.68em] leading-none text-[var(--amber)] sm:text-[0.74em]">
+              <span className="text-[0.74em] leading-none text-[var(--amber)]">
                 {String(hud.score).padStart(3, '0')}
               </span>
             </Cell>
             <Cell label="PAGES">
-              <span className="text-[0.68em] leading-none text-[var(--enamel)] sm:text-[0.74em]">
+              <span className="text-[0.74em] leading-none text-[var(--enamel)]">
                 {hud.hits}/{hud.totalTargets}
               </span>
             </Cell>
             <Cell label="FLICKS">
-              <div className="flick-dots flex flex-wrap gap-[0.14em] pt-[0.1em] sm:gap-[0.16em] sm:pt-[0.14em]">
+              <div className="flex gap-[0.16em] pt-[0.14em]">
                 {Array.from({ length: hud.totalAttempts }).map((_, i) => (
                   <span
                     key={i}
-                    className={`flick-dot h-[0.42em] w-[0.42em] sm:h-[0.48em] sm:w-[0.48em] ${
+                    className={`h-[0.48em] w-[0.48em] ${
                       i < hud.attemptsLeft
                         ? 'bg-[var(--amber)]'
                         : 'border border-[var(--smoke)] bg-transparent'
@@ -93,7 +88,7 @@ export default function Hud({ onRestart }: HudProps) {
           </div>
         </div>
 
-        <div className="flex max-w-full shrink-0 flex-wrap items-start justify-end gap-[0.28em] sm:gap-[0.32em]">
+        <div className="flex items-start gap-[0.32em]">
           <button type="button" onClick={() => setMuted(!sfx.toggle())} className={btnCls}>
             {muted ? '[SOUND OFF]' : '[SOUND ON]'}
           </button>
@@ -103,20 +98,18 @@ export default function Hud({ onRestart }: HudProps) {
         </div>
       </div>
 
-      {/* Bottom hints: row on desktop, stacked centered on phones to avoid overlapping the page */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden justify-between gap-x-3 px-3 pb-[10px] text-[var(--clay)] sm:flex sm:px-4"
+        className="pointer-events-none absolute bottom-[12px] left-[16px] z-10 text-[var(--clay)]"
         style={{ fontSize: 'clamp(10px, 0.75vw + 5px, 15px)' }}
       >
-        <span className="truncate">{'AIM with POINTER · HOLD to CHARGE · RELEASE to FLICK'}</span>
-        <span className="shrink-0">{'LAND ON an IMAGE to SCORE'}</span>
+        {'AIM with POINTER · HOLD to CHARGE · RELEASE to FLICK'}
       </div>
+
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-0 px-2 pb-[6px] text-center leading-none text-[var(--clay)] sm:hidden"
-        style={{ fontSize: '8.5px', letterSpacing: '0.06em' }}
+        className="pointer-events-none absolute bottom-[12px] right-[16px] z-10 text-[var(--clay)]"
+        style={{ fontSize: 'clamp(10px, 0.75vw + 5px, 15px)' }}
       >
-        <span>{'AIM · HOLD · FLICK'}</span>
-        <span className="opacity-80">{'LAND ON IMAGE to SCORE'}</span>
+        {'LAND ON an IMAGE to SCORE'}
       </div>
     </>
   );
