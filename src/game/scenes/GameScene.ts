@@ -136,6 +136,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     const loadingUi = this.buildLoadingUi();
+    const loadingStartedAt = this.time.now;
 
     // --- Progressive loading: Page 1 + sharpener first, rest in background ---
     // Allows the game to become playable after ~2.5 MB instead of ~13 MB.
@@ -162,6 +163,16 @@ export class GameScene extends Phaser.Scene {
 
     // First page is critical — block until it + sharpener are ready.
     await Promise.all([this.loadPageCanvas(0), sharpenerPromise]);
+
+    // Ensure loader stays visible long enough to see typewriter + scanline
+    // (Page1 is often cached and would otherwise hide the loader in <300ms)
+    const minShowMs = 900;
+    const elapsed = this.time.now - loadingStartedAt;
+    if (elapsed < minShowMs) {
+      await new Promise<void>((resolve) => {
+        this.time.delayedCall(minShowMs - elapsed, () => resolve());
+      });
+    }
 
     loadingUi.destroy();
 
@@ -407,25 +418,94 @@ export class GameScene extends Phaser.Scene {
     const container = this.add
       .container(WORLD_WIDTH / 2, WORLD_HEIGHT / 2 - 40)
       .setDepth(100);
-    const spin = this.add.graphics();
-    spin.lineStyle(4, ENAMEL, 0.95);
-    spin.strokeRect(-14, -14, 28, 28);
+
+    // Terminal window — matches HUD/ResultOverlay palette (carbon/ash/amber)
+    const winW = 380;
+    const winH = 118;
+    const bg = this.add.graphics();
+    bg.fillStyle(0x222222, 0.98);
+    bg.fillRect(-winW / 2, -winH / 2, winW, winH);
+    bg.lineStyle(2, 0x444444, 1);
+    bg.strokeRect(-winW / 2, -winH / 2, winW, winH);
+    // Header bar like ResultOverlay
+    const header = this.add.graphics();
+    header.fillStyle(0x8e8e8e, 1);
+    header.fillRect(-winW / 2, -winH / 2, winW, 20);
+    const headerText = this.add
+      .text(-winW / 2 + 10, -winH / 2 + 6, 'LOADING.EXE', {
+        fontFamily: PIXEL_FONT,
+        fontSize: '10px',
+        color: '#222222',
+      })
+      .setOrigin(0, 0);
+
+    // Typewriter label centered
+    const full = 'LOADING PAGE 01 …';
     const label = this.add
-      .text(-70, 44, 'LOADING PAGE 01 …', {
+      .text(0, -6, '', {
         fontFamily: PIXEL_FONT,
         fontSize: '17px',
         color: '#eeeeee',
       })
-      .setOrigin(0, 0.5);
+      .setOrigin(0.5, 0.5);
     const cursor = this.add
-      .text(122, 44, '█', {
+      .text(0, -6, '█', {
         fontFamily: PIXEL_FONT,
         fontSize: '15px',
         color: '#ffa133',
       })
       .setOrigin(0, 0.5);
-    container.add([spin, label, cursor]);
-    this.tweens.add({ targets: spin, rotation: Math.PI, duration: 700, repeat: -1 });
+
+    // Scanline — thin amber line sweeping vertically over the window
+    const scan = this.add.graphics();
+    scan.fillStyle(0xffa133, 0.09);
+    scan.fillRect(-winW / 2 + 2, -winH / 2 + 22, winW - 4, 2);
+    scan.setAlpha(0.9);
+
+    // Subtle inner vignette line at bottom
+    const footer = this.add.graphics();
+    footer.lineStyle(1, 0x444444, 0.6);
+    footer.lineBetween(-winW / 2 + 8, winH / 2 - 18, winW / 2 - 8, winH / 2 - 18);
+    const hint = this.add
+      .text(0, winH / 2 - 9, 'DEPARTURE MONO · 11PX', {
+        fontFamily: PIXEL_FONT,
+        fontSize: '8px',
+        color: '#666666',
+      })
+      .setOrigin(0.5, 0.5);
+
+    container.add([bg, header, headerText, scan, label, cursor, footer, hint]);
+
+    // Typewriter effect — 55ms per char, updates cursor position to end of text
+    let idx = 0;
+    const typeTimer = this.time.addEvent({
+      delay: 55,
+      loop: true,
+      callback: () => {
+        if (idx <= full.length) {
+          const sub = full.slice(0, idx);
+          label.setText(sub);
+          // Keep cursor just after label (centered label, so cursor = center + halfWidth + pad)
+          const halfW = label.width / 2;
+          cursor.setX(halfW + 6);
+          // Keep scanline aligned to label baseline for a bit of sync
+          idx++;
+        } else {
+          typeTimer.remove();
+          // After typing, occasional flicker on label to sell CRT
+          this.tweens.add({
+            targets: label,
+            alpha: 0.6,
+            duration: 80,
+            yoyo: true,
+            repeat: 2,
+            ease: 'Stepped',
+          });
+        }
+      },
+    });
+
+    // Cursor blink (Departure Mono block)
     this.tweens.add({
       targets: cursor,
       alpha: 0,
@@ -434,6 +514,32 @@ export class GameScene extends Phaser.Scene {
       repeat: -1,
       ease: 'Stepped',
     });
+
+    // Scanline sweep — slow vertical scan over the window interior
+    this.tweens.add({
+      targets: scan,
+      y: winH - 26,
+      duration: 1100,
+      repeat: -1,
+      yoyo: true,
+      ease: 'Sine.easeInOut',
+    });
+
+    // Tiny header shimmer
+    this.tweens.add({
+      targets: headerText,
+      alpha: 0.7,
+      duration: 900,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Stepped',
+    });
+
+    // Cleanup timer when container destroyed (loadingUi.destroy() after Page1 ready)
+    container.once(Phaser.GameObjects.Events.DESTROY, () => {
+      typeTimer.remove(false);
+    });
+
     return container;
   }
 
