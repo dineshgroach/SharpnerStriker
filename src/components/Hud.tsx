@@ -61,7 +61,7 @@ export default function Hud({ onRestart }: HudProps) {
           </div>
 
           <div
-            className="flex max-w-full flex-wrap border border-[var(--dark)] bg-[var(--carbon)]/85"
+            className="score-box flex max-w-full flex-wrap border border-[var(--dark)] bg-[var(--carbon)]/85"
             style={{ fontSize: '1.5em' }}
           >
             <Cell label="SCORE">
@@ -75,11 +75,11 @@ export default function Hud({ onRestart }: HudProps) {
               </span>
             </Cell>
             <Cell label="FLICKS">
-              <div className="flex flex-wrap gap-[0.14em] pt-[0.1em] sm:gap-[0.16em] sm:pt-[0.14em]">
+              <div className="flick-dots flex flex-wrap gap-[0.14em] pt-[0.1em] sm:gap-[0.16em] sm:pt-[0.14em]">
                 {Array.from({ length: hud.totalAttempts }).map((_, i) => (
                   <span
                     key={i}
-                    className={`h-[0.42em] w-[0.42em] sm:h-[0.48em] sm:w-[0.48em] ${
+                    className={`flick-dot h-[0.42em] w-[0.42em] sm:h-[0.48em] sm:w-[0.48em] ${
                       i < hud.attemptsLeft
                         ? 'bg-[var(--amber)]'
                         : 'border border-[var(--smoke)] bg-transparent'

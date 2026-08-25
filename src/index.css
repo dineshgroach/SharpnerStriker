@@ -77,7 +77,30 @@ body,
   animation: blink-block 1s steps(1) infinite;
 }
 
-/* HUD: keep desktop exactly as before (22.5px–40.5px) but shrink proportionally on small screens to prevent overlap with the page */
+/* HUD: keep 27" desktop exactly as before (22.5px–40.5px) but shrink for smaller viewports */
+ /* 14" laptops (1366x768 etc): height is the limiter for the page zoom, so scale HUD with vh as well.
+    Without this, HUD stays 40.5px while page shrinks 40%, causing FLICKS to overlap photos. */
+@media (max-width: 1600px) and (max-height: 900px) {
+  .hud-root {
+    font-size: clamp(14px, 0.9vw + 0.65vh + 6px, 28px) !important;
+  }
+  .hud-root .score-box {
+    font-size: 1.25em !important;
+  }
+  .hud-root .flick-dot {
+    width: 0.38em !important;
+    height: 0.38em !important;
+  }
+}
+@media (max-width: 1280px) and (max-height: 800px) {
+  .hud-root {
+    font-size: clamp(12px, 0.85vw + 0.6vh + 5px, 22px) !important;
+  }
+  .hud-root .score-box {
+    font-size: 1.15em !important;
+  }
+}
+/* Phones/tablets */
 @media (max-width: 640px) {
   .hud-root {
     font-size: clamp(11px, 3.6vw + 4px, 18.5px) !important;
