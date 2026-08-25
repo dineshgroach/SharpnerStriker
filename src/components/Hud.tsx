@@ -15,9 +15,11 @@ const emptyHud: HudState = {
 };
 
 const hudScale: CSSProperties = {
-  // Desktop keeps original scale exactly: clamp(22.5px, 2.025vw + 13.5px, 40.5px)
-  // Mobile shrinks via CSS media override on .hud-root (see index.css) so large screens stay identical.
-  fontSize: 'clamp(22.5px, 2.025vw + 13.5px, 40.5px)',
+  // General responsive: scales with both width and height (vmin/vw/vh) so it tracks the page zoom
+  // (page zoom = min(vw/WORLD_W, vh/WORLD_H)). Previous vw-only clamp stayed 40.5px on 1800x1320 and 1366x768
+  // while page shrank, causing FLICKS to overlap. This fluid formula keeps HUD proportional on any viewport
+  // (27" 2560x1440 -> ~36px, 1800x1320 -> ~33px, 14" 1366x768 -> ~23px, phones -> ~12px).
+  fontSize: 'clamp(11px, 1.15vmin + 0.55vw + 0.35vh + 4px, 36px)',
 };
 
 const btnCls =
